@@ -141,6 +141,7 @@ const Home: React.FC = () => {
               required
               cleared={inputClear}
               icon={FiPhone}
+              label="Telefone:"
               name="phone-number"
               type="tel"
               pattern="^(\+\d{1,2})?(\s\(\d{2}\)\s?|[\s.-]?\d{2}[\s.-]?)\d{4,5}[\s.-]?\d{4}$"
