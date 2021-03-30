@@ -1,5 +1,8 @@
 # unform-chakra
 
+<p align="center">
+    <img alt="unform-chakra" title="unform-chakra" src=".github/unform-chakra.png" />
+</p>
 
 ## Instalação
 ```bash
