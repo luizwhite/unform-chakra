@@ -11,16 +11,18 @@ import {
   FormLabel,
   Text as ChakraText,
   useTheme,
+  InputProps as ChakraInputProps,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 
-interface FileInputProps {
+type FileInputProps = {
   name: string;
+  required?: boolean;
   cleared?: boolean;
   isInvalidFile: boolean | undefined;
   setIsInvalidFile: Dispatch<SetStateAction<boolean>> | undefined;
   $ref: RefObject<HTMLInputElement>;
-}
+} & ChakraInputProps;
 
 interface Document {
   blob: string;
@@ -38,24 +40,29 @@ export const FileInput: React.FC<FileInputProps> = ({
   isInvalidFile,
   setIsInvalidFile,
   cleared = false,
+  ...rest
 }) => {
   const [doc, setDoc] = useState<Document | null>(null);
 
   const handleDocumentChange = useCallback(({ target }) => {
-    setDoc({
-      blob: window.URL.createObjectURL(target.files[0]),
-      file: target.files[0],
-    });
-    console.log({
-      blob: window.URL.createObjectURL(target.files[0]),
-      file: target.files[0],
-    });
+    if (target.files.length) {
+      const newDoc = {
+        blob: window.URL.createObjectURL(target.files[0]),
+        file: target.files[0],
+      };
+      setDoc(newDoc);
+      console.log(newDoc);
+    } else {
+      setDoc(null);
+    }
   }, []);
 
+  // ▼ When doc has value (files), set as valid
   useEffect(() => {
     if (doc && setIsInvalidFile) setIsInvalidFile(false);
   }, [doc]);
 
+  // ▼ States cleared when form reset
   useEffect(() => {
     if (cleared) {
       setDoc(null);
@@ -101,12 +108,15 @@ export const FileInput: React.FC<FileInputProps> = ({
         style={{ display: 'none' }}
         id={name}
         ref={$ref}
+        accept={rest.accept}
       />
+      {/* ▼ When file loaded */}
       {doc?.file?.name && (
         <ChakraText as="i" d="block" fontSize="xs" mb={3} fontWeight="medium">
           {doc.file.name}
         </ChakraText>
       )}
+      {/* ▼ When invalid */}
       {isInvalidFile && (
         <ChakraText
           color="red.400"

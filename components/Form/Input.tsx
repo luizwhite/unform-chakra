@@ -1,12 +1,21 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   FormControl as ChakraFormControl,
   FormLabel as ChakraFormLabel,
   FormHelperText as ChakraFormHelperText,
+  Button as ChakraButton,
   Input as ChakraInput,
   InputProps as ChakraInputProps,
   InputGroup as ChakraInputGroup,
   InputLeftElement as ChakraInputLeftElement,
+  InputRightElement as ChakraInputRightElement,
   Icon as ChakraIcon,
 } from '@chakra-ui/react';
 import { IconBaseProps as IconProps } from 'react-icons';
@@ -42,6 +51,7 @@ export const Input: React.FC<InputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFilled, setIsFilled] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
+  const [passwordShow, setPasswordShow] = useState(false);
   const { fieldName, defaultValue, error, registerField } = useField(name);
 
   const handleInputBlur = useCallback(() => {
@@ -57,8 +67,13 @@ export const Input: React.FC<InputProps> = ({
     }
   }, []);
 
+  const handlePasswordShowToggle = useCallback(() => {
+    setPasswordShow(!passwordShow);
+  }, [passwordShow]);
+
+  // ▼ Unform register field
   useEffect(() => {
-    if (name !== 'document')
+    if (type !== 'file')
       registerField({
         name: fieldName,
         ref: inputRef.current,
@@ -72,6 +87,7 @@ export const Input: React.FC<InputProps> = ({
       });
   }, [fieldName, registerField]);
 
+  // ▼ States cleared when form reset
   useEffect(() => {
     if (cleared) {
       setIsFilled(false);
@@ -88,44 +104,74 @@ export const Input: React.FC<InputProps> = ({
     type,
     pattern,
     ref: inputRef,
+    defaultValue: defaultValue,
     onBlur: handleInputBlur,
     _hover: {
       borderColor: 'gray.400',
     },
   };
 
+  const inputFileProps = {
+    $ref: inputRef,
+    name,
+    isInvalidFile,
+    setIsInvalidFile,
+    cleared,
+  };
+
   return (
     <ChakraFormControl
       id={name}
+      // ▼ When input is required or invalid, set the Chakra Form Control
       {...(isRequired && { isRequired })}
       {...(isInvalid && { isInvalid })}
     >
+      {/* ▼ With label */}
       {!!label && <ChakraFormLabel>{label}</ChakraFormLabel>}
-      {!!Icon && type !== 'file' ? (
+
+      {/* ▼ Not file type input */}
+      {type !== 'file' ? (
         <ChakraInputGroup>
-          <ChakraInputLeftElement
-            h="100%"
-            pointerEvents="none"
-            children={
-              <ChakraIcon
-                color={isFilled ? 'blue.400' : 'gray.600'}
-                as={Icon}
-                boxSize={6}
-              />
-            }
+          {/* ▼ With Icon */}
+          {!!Icon && (
+            <ChakraInputLeftElement
+              h="100%"
+              pointerEvents="none"
+              children={
+                <ChakraIcon
+                  color={isFilled ? 'blue.400' : 'gray.600'}
+                  as={Icon}
+                  boxSize={6}
+                />
+              }
+            />
+          )}
+          <ChakraInput
+            {...inputProps}
+            {...rest}
+            {...(type === 'password' && {
+              type: passwordShow ? 'text' : 'password',
+            })}
           />
-          <ChakraInput {...inputProps} {...rest} />
+          {/* ▼ When password type, puts this right element */}
+          {type === 'password' && (
+            <ChakraInputRightElement w={20} h="full" px={2}>
+              <ChakraButton
+                h={7}
+                size="lg"
+                fontSize="md"
+                onClick={handlePasswordShowToggle}
+              >
+                {passwordShow ? 'Hide' : 'Show'}
+              </ChakraButton>
+            </ChakraInputRightElement>
+          )}
         </ChakraInputGroup>
-      ) : type === 'file' ? (
-        <FileInput
-          $ref={inputRef}
-          name={name}
-          isInvalidFile={isInvalidFile}
-          setIsInvalidFile={setIsInvalidFile}
-          cleared={cleared}
-        />
       ) : (
-        <ChakraInput {...inputProps} {...rest} />
+        type === 'file' && (
+          // ▼ File type input
+          <FileInput {...inputFileProps} {...rest} />
+        )
       )}
       {!!helperText && (
         <ChakraFormHelperText mt={1}>{helperText}</ChakraFormHelperText>
